@@ -34,7 +34,7 @@ function polldaddy_show_rating_comments( $content ) {
 
 function polldaddy_show_rating( $content ) {
 	if ( !is_feed() && !is_attachment() ) {
-		if ( is_single() || is_page() || is_home() ) {
+		if ( is_single() || is_page() || is_home() || is_archive() || is_category() ) {
 			$html = polldaddy_get_rating_html( 'check-options' );
 
 			if ( !empty( $html ) ) {
@@ -42,7 +42,7 @@ function polldaddy_show_rating( $content ) {
 
 				if ( is_page() ) {
 					$rating_pos = (int) get_option( 'pd-rating-pages-pos' );
-				} elseif ( is_home() ) {
+				} elseif ( is_home() || is_archive() || is_category() ) {
 					$rating_pos = (int) get_option( 'pd-rating-posts-index-pos' );
 				} else {
 					$rating_pos = (int) get_option( 'pd-rating-posts-pos' );
@@ -86,7 +86,7 @@ function polldaddy_get_rating_html( $condition = '' ) {
 		} elseif ( !in_array( $post->ID, $exclude_posts ) ) {
 			$unique_id = 'wp-post-' . $post->ID;
 			$item_id =  '_post_' . $post->ID;
-			if ( is_home() ) {
+			if ( is_home() || is_archive() || is_category() ) {
 				if ( $condition == 'check-options' ) {
 					if ( (int) get_option( 'pd-rating-posts-index' ) > 0 ) {
 						$rating_id = (int) get_option( 'pd-rating-posts-id' );
@@ -109,7 +109,7 @@ function polldaddy_get_rating_html( $condition = '' ) {
 			$rating_title_filter = get_option( 'pd-rating-title-filter' );
 			
 			if ( $rating_title_filter === false )
-				$title = apply_filters( 'wp_title', $post->post_title );
+				$title = apply_filters( 'wp_title', $post->post_title, '', '' );
 			elseif ( strlen( $rating_title_filter ) > 0 )
 				$title = apply_filters( $rating_title_filter, $post->post_title );
 			else
