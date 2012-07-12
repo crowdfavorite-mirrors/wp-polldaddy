@@ -1,15 +1,17 @@
 === Polldaddy Polls & Ratings ===
 Contributors: eoigal, alternatekev, mdawaffe, donncha, johnny5
 Tags: polls, poll, polldaddy,  wppolls, vote, polling, surveys, rate, rating, ratings
-Requires at least: 2.6
-Tested up to: 3.3.1
-Stable tag: 2.0.13
+Requires at least: 3.2
+Tested up to: 3.4.1
+Stable tag: 2.0.14
 
 Create and manage Polldaddy polls and ratings from within WordPress.
 
 == Description ==
 
 The Polldaddy Polls and Ratings plugin allows you to create and manage polls and ratings from within your WordPress dashboard. You can create polls, choose from 20 different styles for your polls, and view all results for your polls as they come in. All Polldaddy polls are fully customizable, you can set a close date for your poll, create multiple choice polls, choose whether to display the results or keep them private. You can also create your own custom style for your poll. You can even embed the polls you create on other websites. You can collect unlimited votes and create unlimited polls. The new ratings menu allows you to embed ratings into your posts, pages or comments. The rating editor allows you to fully customize you rating. You can also avail of the the 'Top Rated' widget that will allow you to place the widget in your sidebar. This widget will show you the top rated posts, pages and comments today, this week and this month.
+
+The Polldaddy plugin requires PHP 5.
 
 Polldaddy Polls is localizable and currently available in:
 
@@ -75,9 +77,9 @@ Want to help translate the plugin or keep an existing translation up-to-date? He
 
 == Installation ==
 
-Upload the plugin to your blog, Activate it, then enter your Polldaddy.com email address and password.
+Upload the plugin to your blog (or search for it and install it on your plugins page), activate it, then go to the Polls page. Enter your [Polldaddy.com](http://polldaddy.com/) email address and password to sync your account and pull in your existing polls and ratings.
 
-You can find further help on our [support page](http://support.polldaddy.com/installing-wordpress-org-plugin/). If you have any problems please use the [support forum](http://wordpress.org/tags/polldaddy?forum_id=10). The plugin also logs activity to a file using the [WP Debug Logger](http://wordpress.org/extend/plugins/wp-debug-logger/) plugin which can be useful in determining the cause of a problem.
+You can find further help on our [support page](http://support.polldaddy.com/). If you have any problems please use the [support forum](http://wordpress.org/tags/polldaddy?forum_id=10). The plugin also logs activity to a file using the [WP Debug Logger](http://wordpress.org/extend/plugins/wp-debug-logger/) plugin which can be useful in determining the cause of a problem.
 
 == Screenshots ==
 
@@ -110,7 +112,7 @@ More info here - http://codex.wordpress.org/Theme_Development#Plugin_API_Hooks
 
 = I cannot access my ratings settings, I am getting a "Sorry! There was an error creating your rating widget. Please contact Polldaddy support to fix this." message. =
 
-You need to select the synchronize ratings account in the Options menu to make sure the ratings API key is valid.
+You need to select the synchronize ratings account in the WordPress options page at Settings->Polls & Ratings to make sure the ratings API key is valid.
 
 = When I try to use a rating on a page, I get a PHP warning about the post title. =
 
@@ -122,10 +124,16 @@ Your theme is getting the post content, without necessarily showing it. If the p
 
 
 == Upgrade Notice ==
-= 2.0.13 =
-Bugfixes
+= 2.0.14 =
+SSL support and faster page loads 
 
 == Changelog ==
+
+= 2.0.14
+* Added support for SSL on the admin dashboard.
+* Updated the shortcodes to load more efficiently in the footer.
+* Fixed number of minor javascript errors.
+* Fixed bug with admin menu and toolbar showing in popup
 
 = 2.0.13 =
 * Updated translation files and fixed gettext domain in plugin strings

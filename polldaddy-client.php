@@ -905,9 +905,12 @@ function sync_rating( ){
 	 * @return array|false Polldaddy Media or false on failure
 	 */
 
-    function upload_image( $name, $url, $type, $id = 0 ){
+    function upload_image( $name, $url, $type, $id = 0, $data = '' ){
 
-	    $pos = $this->add_request( 'uploadimageurl', new Polldaddy_Media( compact( 'name', 'type', 'url'  ) , compact( 'id' ) ) );
+		if ( !empty( $data ) )
+			$pos = $this->add_request( 'uploadimagebinary', new Polldaddy_Media( compact( 'name', 'type', 'data'  ) , compact( 'id' ) ) );
+		else
+	    	$pos = $this->add_request( 'uploadimageurl', new Polldaddy_Media( compact( 'name', 'type', 'url' ) , compact( 'id' ) ) );
 
 	    $this->send_request(30);
 
@@ -1167,7 +1170,7 @@ function &polldaddy_poll( $args = null, $id = null, $_require_data = true ) {
 		}
 		
 		global $wpdb;		
-		$public = (int) $wpdb->get_var( $wpdb->prepare( "SELECT public FROM wp_blogs WHERE blog_id = %d", $wpdb->blogid ) );
+		$public = (int) $wpdb->get_var( $wpdb->prepare( "SELECT public FROM {$wpdb->blogs} WHERE blog_id = %d", $wpdb->blogid ) );
 		if( $public == -1 )
 			$args['makePublic'] = 'no';
 
