@@ -61,26 +61,17 @@ class WPORG_Polldaddy extends WP_Polldaddy {
 	
 	function admin_title( $admin_title ) {
 		global $page;
-		if ( $page == 'polls' )
-			return __( "Polls", "polldaddy" ).$admin_title;
-		else
-			return __( "Ratings", "polldaddy" ).$admin_title;
+		
+		if ( $page == 'ratings' )
+			return (stripos( $admin_title, $page ) === false ? __( "Ratings", "polldaddy" ) : '' ).$admin_title;
+		elseif ( $page == 'polls' )
+			return (stripos( $admin_title, $page ) === false ? __( "Polls", "polldaddy" ) : '' ).$admin_title;
+		
+		return $admin_title;
 	}
 	
 	function admin_menu() {				
-		parent::admin_menu();			
-		
-		if ( class_exists( 'Jetpack' ) ) {
-			add_submenu_page( 'edit.php?post_type=feedback', __( 'Feedbacks', 'polldaddy' ), __( 'Feedbacks', 'polldaddy' ), 'edit_pages', 'edit.php?post_type=feedback' );	
-	
-			foreach( array( 'polls' => __( 'Polls', 'polldaddy' ), 'ratings' => __( 'Ratings', 'polldaddy' ) ) as $menu_slug => $menu_title ) {
-				remove_menu_page( $menu_slug );
-				add_submenu_page( 'edit.php?post_type=feedback', $menu_title, $menu_title, 'edit_posts', 'edit.php?page='.$menu_slug );
-			}
-		}
-		else {
-			remove_menu_page( 'ratings' );
-		}
+		parent::admin_menu();
 	}
 
 	function management_page_load() {
@@ -147,19 +138,8 @@ class WPORG_Polldaddy extends WP_Polldaddy {
 			$submenu_file = $page.'&action=options';
 		}
 		else {					
-			if ( class_exists( 'Jetpack' ) ) {
-				//need to fix admin title when viewing polls and rating pages
-				add_filter( 'admin_title', array( &$this, 'admin_title' ) );
-	
-				$parent_file  = 'edit.php?post_type=feedback';
-				$typenow      = 'feedback';
-				$submenu_file = 'edit.php?page='.$page;	
-				remove_submenu_page( $page, $page );
-			}	
-			elseif ( $page == 'ratings' ) {
-				add_filter( 'admin_title', array( &$this, 'admin_title' ) );
-				$submenu_file = 'ratings';	
-			}
+			add_filter( 'admin_title', array( &$this, 'admin_title' ) );	
+			$submenu_file = $page;
 		}
 
 		parent::management_page_load();
@@ -300,7 +280,7 @@ class WPORG_Polldaddy extends WP_Polldaddy {
 						<label for="polldaddy-email"><?php _e( 'Polldaddy Email Address', 'polldaddy' ); ?></label>
 					</th>
 					<td>
-						<input type="text" name="polldaddy_email" id="polldaddy-email" aria-required="true" size="40" value="<?php if ( isset( $_POST['polldaddy_email'] ) ) echo attribute_escape( $_POST['polldaddy_email'] ); ?>" />
+						<input type="text" name="polldaddy_email" id="polldaddy-email" aria-required="true" size="40" value="<?php if ( isset( $_POST['polldaddy_email'] ) ) echo esc_attr( $_POST['polldaddy_email'] ); ?>" />
 					</td>
 				</tr>
 				<tr class="form-field form-required">
@@ -332,7 +312,7 @@ class WPORG_Polldaddy extends WP_Polldaddy {
 			<?php wp_nonce_field( 'polldaddy-account' ); ?>
 			<input type="hidden" name="action" value="account" />
 			<input type="hidden" name="account" value="import" />
-			<input class="button-secondary" type="submit" value="<?php echo attribute_escape( __( 'Submit', 'polldaddy' ) ); ?>" />
+			<input class="button-secondary" type="submit" value="<?php echo esc_attr( __( 'Submit', 'polldaddy' ) ); ?>" />
 		</p>
 	</form>
 </div>
@@ -990,7 +970,7 @@ EOD;
 			$item_count    = (int) $instance['item_count'];
 ?>
 				<p>
-					<label for="<?php echo $this->get_field_id('title'); ?>"><?php _e( 'Title', 'polldaddy' ); ?>: <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo attribute_escape( $title ); ?>" /></label></p>
+					<label for="<?php echo $this->get_field_id('title'); ?>"><?php _e( 'Title', 'polldaddy' ); ?>: <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo esc_attr( $title ); ?>" /></label></p>
 				<p>
 					<label for="<?php echo $this->get_field_id( 'show_posts' ); ?>">
 						<input type="checkbox" class="checkbox"  id="<?php echo $this->get_field_id( 'show_posts' ); ?>" name="<?php echo $this->get_field_name( 'show_posts' ); ?>" value="1" <?php echo $show_posts == 1 ? 'checked="checked"' : ''; ?> />
@@ -1030,4 +1010,12 @@ EOD;
 	}
 	add_action('widgets_init', create_function('', 'return register_widget("PD_Top_Rated");'));
 }
+
+function polldaddy_login_warning() {
+	global $cache_enabled;
+	$page = isset( $_GET[ 'page' ] ) ? $_GET[ 'page' ] : '';
+	if ( $page != 'polls' && false == get_option( 'polldaddy_api_key' ) && function_exists( "admin_url" ) )
+		echo '<div class="updated"><p><strong>' . sprintf( __( 'Warning! The Polldaddy plugin must be linked to your Polldaddy.com account. Please visit the <a href="%s">plugin settings page</a> to login.', 'polldaddy' ), admin_url( 'options-general.php?page=polls&action=options' ) ) . '</strong></p></div>';
+}
+add_action( 'admin_notices', 'polldaddy_login_warning' );
 ?>
