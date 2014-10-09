@@ -118,7 +118,7 @@ class WPORG_Polldaddy extends WP_Polldaddy {
 					
 					$rating_title_filter = '';
 					if ( isset( $_POST['polldaddy-ratings-title-filter'] ) )
-						$rating_title_filter = $_POST['polldaddy-ratings-title-filter'];
+						$rating_title_filter = sanitize_text_field( $_POST['polldaddy-ratings-title-filter'] );
 						
 					update_option( 'pd-rating-title-filter', $rating_title_filter );
 				}
@@ -374,7 +374,7 @@ class WPORG_Polldaddy extends WP_Polldaddy {
       </label>
     </th>
     <td>
-      <input type="text" name="polldaddy-ratings-title-filter" id="polldaddy-ratings-title-filter" value="<?php echo $rating_title_filter; ?>" style="width: auto" />
+      <input type="text" name="polldaddy-ratings-title-filter" id="polldaddy-ratings-title-filter" value="<?php echo esc_attr( $rating_title_filter ); ?>" style="width: auto" />
         <span class="description">
           <label for="polldaddy-ratings-title-filter"><?php _e( 'This setting allows you to specify a filter to use with your ratings title.', 'polldaddy' ); ?></label>
         </span>
@@ -548,6 +548,10 @@ class PolldaddyShortcode {
 		self::$add_script = $infinite_scroll;
 		
 		if ( intval( $rating ) > 0 && !$no_script ) { //rating embed		
+			if ( is_ssl() )
+				$rating_js_file = "https://polldaddy.com/js/rating/rating.js";
+			else
+				$rating_js_file = "http://i0.poll.fm/js/rating/rating.js";
 		
 			if ( empty( $unique_id ) )
 				$unique_id = is_page() ? 'wp-page-'.$post->ID : 'wp-post-'.$post->ID;
@@ -562,7 +566,7 @@ class PolldaddyShortcode {
 				$permalink = get_permalink( $post->ID );
 				
 			$rating    = intval( $rating );
-			$unique_id = wp_strip_all_tags( $unique_id );
+			$unique_id = preg_replace( '/[^-_a-z0-9]/i', '', wp_strip_all_tags( $unique_id ) );
 			$item_id   = wp_strip_all_tags( $item_id );
 			$item_id   = preg_replace( '/[^_a-z0-9]/i', '', $item_id );
 			
@@ -582,7 +586,7 @@ class PolldaddyShortcode {
 <script type="text/javascript" charset="UTF-8"><!--//--><![CDATA[//><!--
 PDRTJS_settings_{$rating}{$item_id}={$settings};
 //--><!]]></script>
-<script type="text/javascript" charset="UTF-8" src="http://i0.poll.fm/js/rating/rating.js"></script>
+<script type="text/javascript" charset="UTF-8" src="{$rating_js_file}"></script>
 SCRIPT;
 			} else {				
 				if ( self::$scripts === false )
@@ -781,11 +785,15 @@ CONTAINER;
 		
 		if ( is_array( self::$scripts ) ) {
 			if ( isset( self::$scripts['rating'] ) ) {
+				if ( is_ssl() )
+					$rating_js_file = "https://polldaddy.com/js/rating/rating.js";
+				else
+					$rating_js_file = "http://i0.poll.fm/js/rating/rating.js";
 				$script = "<script type='text/javascript' charset='UTF-8' id='polldaddyRatings'><!--//--><![CDATA[//><!--\n";
 				foreach( self::$scripts['rating'] as $rating ) {
 					$script .= "PDRTJS_settings_{$rating['id']}{$rating['item_id']}={$rating['settings']}; if ( typeof PDRTJS_RATING !== 'undefined' ){if ( typeof PDRTJS_{$rating['id']}{$rating['item_id']} == 'undefined' ){PDRTJS_{$rating['id']}{$rating['item_id']} = new PDRTJS_RATING( PDRTJS_settings_{$rating['id']}{$rating['item_id']} );}}";
 				}
-				$script .= "\n//--><!]]></script><script type='text/javascript' charset='UTF-8' src='http://i0.poll.fm/js/rating/rating.js'></script>";
+				$script .= "\n//--><!]]></script><script type='text/javascript' charset='UTF-8' src='{$rating_js_file}'></script>";
 			
 			}
 			
@@ -1084,7 +1092,7 @@ function polldaddy_post_rating( $content ) {
 		$average = ceil( ( $rating[0][ 'average' ] / $rating[0][ 'votes' ] ) * 5 );
 	else
 		$average = $rating[ 'average' ];
-	if ( $average < 0 )
+	if ( $average < 0 || $average == '' )
 		return $content;
 	global $post;
 	return $content . '<span class="hreview-aggregate"><span class="item"><span class="fn">"' . $post->post_title . '"</span></span>, <span class="rating"><span class="average">' . $average . '</span> out of <span class="best">5</span> based on <span class="votes">' . $rating[0][ 'votes' ] . '</span> ratings.</span></span>';
