@@ -6,7 +6,7 @@ Plugin URI: http://wordpress.org/extend/plugins/polldaddy/
 Description: Create and manage Polldaddy polls and ratings in WordPress
 Author: Automattic, Inc.
 Author URL: http://polldaddy.com/
-Version: 2.0.27
+Version: 2.0.33
 */
 
 // You can hardcode your Polldaddy PartnerGUID (API Key) here
@@ -50,7 +50,24 @@ class WP_Polldaddy {
 				if ( $jetpack_active_modules && in_array( 'contact-form', $jetpack_active_modules ) )
 					$this->has_feedback_menu = true;
 			}
+
+			if ( class_exists( 'Jetpack_Sync' ) && defined( 'JETPACK__VERSION' ) &&  version_compare( JETPACK__VERSION, '4.1', '<' ) ) {
+				Jetpack_Sync::sync_options( __FILE__, 'polldaddy_api_key' );
+			}
+
+			add_filter( 'jetpack_options_whitelist', array( $this, 'add_to_jetpack_options_whitelist' ) );
 		}
+	}
+
+   /**
+	* Add the polldaddy option to the Jetpack options management whitelist.
+	*
+	* @param array $options The list of whitelisted option names.
+	* @return array The updated whitelist
+	*/
+	public static function add_to_jetpack_options_whitelist( $options ) {
+		$options[] = 'polldaddy_api_key';
+		return $options;
 	}
 
 	function &get_client( $api_key, $userCode = null ) {
@@ -85,13 +102,13 @@ class WP_Polldaddy {
 		$capability = 'edit_posts';
 		$function   = array( &$this, 'management_page' );
 
-		$hook = add_object_page( __( 'Feedback', 'polldaddy' ), __( 'Feedback', 'polldaddy' ), $capability, 'feedback', $function, 'div' );
+		$hook = add_menu_page( __( 'Feedback', 'polldaddy' ), __( 'Feedback', 'polldaddy' ), $capability, 'feedback', $function, 'div' );
 		add_action( "load-$hook", array( &$this, 'management_page_load' ) );
 		
 		foreach( array( 'polls' => __( 'Polls', 'polldaddy' ), 'ratings' => __( 'Ratings', 'polldaddy' ) ) as $menu_slug => $page_title ) {
 			$menu_title  = $page_title;
 			
-			$hook = add_object_page( $menu_title, $menu_title, $capability, $menu_slug, $function, 'div' );
+			$hook = add_menu_page( $menu_title, $menu_title, $capability, $menu_slug, $function, 'div' );
 			add_action( "load-$hook", array( &$this, 'management_page_load' ) );
 			
 			add_submenu_page( 'feedback', $page_title, $page_title, $capability, $menu_slug, $function );			
@@ -4950,7 +4967,7 @@ src="http://static.polldaddy.com/p/<?php echo (int) $poll_id; ?>.js"&gt;&lt;/scr
       <tbody>
         <tr class="form-field form-required">
           <th valign="top" scope="row">
-            <label for="polldaddy-email">
+            <label for="polldaddy-key">
               <?php _e( 'Polldaddy.com API Key', 'polldaddy' ); ?>
             </label>
           </th>

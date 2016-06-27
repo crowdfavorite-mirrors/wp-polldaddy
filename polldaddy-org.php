@@ -924,7 +924,16 @@ new PolldaddyShortcode();
 if ( !function_exists( 'polldaddy_link' ) ) {
 	// http://polldaddy.com/poll/1562975/?view=results&msg=voted
 	function polldaddy_link( $content ) {
-		return preg_replace( '!(?:\n|\A)http://polldaddy.com/poll/([0-9]+?)/(.+)?(?:\n|\Z)!i', "\n<script type='text/javascript' charset='utf-8' src='//static.polldaddy.com/p/$1.js'></script><noscript> <a href='http://polldaddy.com/poll/$1/'>View Poll</a></noscript>\n", $content );
+		if ( false === strpos( $content, "polldaddy.com/" ) )
+			return $content;
+		$textarr = wp_html_split( $content );
+		unset( $content );
+		foreach( $textarr as &$element ) {
+			if ( '' === $element || '<' === $element{0} )
+				continue;
+			$element = preg_replace( '!(?:\n|\A)http://polldaddy.com/poll/([0-9]+?)/(.+)?(?:\n|\Z)!i', "\n<script type='text/javascript' charset='utf-8' src='//static.polldaddy.com/p/$1.js'></script><noscript> <a href='http://polldaddy.com/poll/$1/'>View Poll</a></noscript>\n", $element );
+		}
+		return join( $textarr );
 	}
 	
 	// higher priority because we need it before auto-link and autop get to it
@@ -1002,10 +1011,14 @@ if ( class_exists( 'WP_Widget' ) ) {
 
         	echo '</script>';
 			
+			if ( is_ssl() )
+				$rating_js_file = "https://polldaddy.com/js/rating/rating-top.js";
+			else
+				$rating_js_file = "http://i0.poll.fm/js/rating/rating-top.js";
 			$widget = <<<EOD
 {$before_title}{$title}{$after_title}
 <div id="pd_top_rated_holder" class="pd_top_rated_holder_{$widget_class}"></div>
-<script language="javascript" charset="UTF-8" src="http://i0.poll.fm/js/rating/rating-top.js"></script>
+<script language="javascript" charset="UTF-8" src="{$rating_js_file}"></script>
 <script type="text/javascript" charset="UTF-8"><!--//--><![CDATA[//><!--
 PDRTJS_TOP = new PDRTJS_RATING_TOP( {$posts_rating_id}, {$pages_rating_id}, {$comments_rating_id}, '{$rating_seq}', {$instance['item_count']} );{$filter}{$show}
 //--><!]]></script>
@@ -1080,9 +1093,9 @@ EOD;
 }
 
 function polldaddy_login_warning() {
-	global $cache_enabled;
+	global $cache_enabled, $hook_suffix;
 	$page = isset( $_GET[ 'page' ] ) ? $_GET[ 'page' ] : '';
-	if ( false == get_option( 'polldaddy_api_key' ) && function_exists( "admin_url" ) )
+	if ( ( $hook_suffix == 'plugins.php' || $page == 'polls' ) && false == get_option( 'polldaddy_api_key' ) && function_exists( "admin_url" ) )
 		echo '<div class="updated"><p><strong>' . sprintf( __( 'Warning! The Polldaddy plugin must be linked to your Polldaddy.com account. Please visit the <a href="%s">plugin settings page</a> to login.', 'polldaddy' ), admin_url( 'options-general.php?page=polls&action=options' ) ) . '</strong></p></div>';
 }
 add_action( 'admin_notices', 'polldaddy_login_warning' );
